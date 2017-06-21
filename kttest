@@ -124,39 +124,27 @@ tResult <- function(x,y,fld){
     fp <- sprintf(\"%f\", ft\$p.value)
     if(!is.na(ft\$p.value)){
         if(ft\$p.value >= 0.05){ # 等分散の場合（var.equal=Tとする）
-            tt <- t.test(x, y, na.rm=TRUE, var.equal=T)
-            tp <- sprintf(\"%f\", tt\$p.value)
-            tv <- sprintf(\"%f\", tt\$statistic)
-            if(tt\$p.value < 0.005) { # p<.005の場合
-                tc <- \"***\"
-            } else if(tt\$p.value < 0.01) { # p<.01の場合
-                tc <- \"**\"
-            } else if(tt\$p.value < 0.05) { # p<.05の場合
-                tc <- \"*\"
-            } else if(tt\$p.value < 0.10) {
-                tc <- \"+\"
-            } else {
-                tc <- \"n.s\"
-            }
-            res <- data.frame(fld, label0_mean=mean(x,na.rm=TRUE), label1_mean=mean(y,na.rm=TRUE), f.test=\"TRUE\", t=tv, p_value=tp, t_check=tc)
+          shima_varEqual<-T
+          shima_test<-\"TRUE\"
+        } else {                  # 不等分散
+          shima_varEqual<-F
+          shima_test<-\"FALSE\"
         }
-        if(ft\$p.value < 0.05){ # 不等分散の場合（var.equal=Fとする）
-            tt <- t.test(x, y, na.rm=TRUE, var.equal=F)
-            tp <- sprintf(\"%f\", tt\$p.value)
-            tv <- sprintf(\"%f\", tt\$statistic)
-            if(tt\$p.value < 0.005) { # p<.005の場合
-                tc <- \"***\"
-            } else if(tt\$p.value < 0.01) { # p<.01の場合
-                tc <- \"**\"
-            } else if(tt\$p.value < 0.05) { # p<.05の場合
-                tc <- \"*\"
-            } else if(tt\$p.value < 0.10) {
-                tc <- \"+\"
-            } else {
-                tc <- \"n.s\"
-            }
-            res <- data.frame(fld, label0_mean=mean(x,na.rm=TRUE), label1_mean=mean(y,na.rm=TRUE), f.test=\"FALSE\", t=tv, p_value=tp, t_check=tc)
+        tt <- t.test(x, y, na.rm=TRUE, var.equal=shima_varEqual)
+        tp <- sprintf(\"%f\", tt\$p.value)
+        tv <- sprintf(\"%f\", tt\$statistic)
+        if(tt\$p.value < 0.005) { # p<.005の場合
+            tc <- \"***\"
+        } else if(tt\$p.value < 0.01) { # p<.01の場合
+            tc <- \"**\"
+        } else if(tt\$p.value < 0.05) { # p<.05の場合
+            tc <- \"*\"
+        } else if(tt\$p.value < 0.10) {
+            tc <- \"+\"
+        } else {
+            tc <- \"n.s\"
         }
+        res <- data.frame(fld, label0_mean=mean(x,na.rm=TRUE), label1_mean=mean(y,na.rm=TRUE), f.test=shima_test, t=tv, p_value=tp, t_check=tc)
         write(paste(\"#END#\",fld), stderr())
         return(res)
     } else {
