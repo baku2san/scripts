@@ -66,15 +66,16 @@ function endByInt {
 
 
 #パラメータのチェック＆セット
-while getopts "k:i:o:T:V:h" opt; do
+while getopts "k:i:mo:T:V:h" opt; do
     case $opt in
     k  ) key=$OPTARG ;;
-	i  ) input=$OPTARG ;;
-	o  ) output=$OPTARG ;;
-	T  ) tmpD=$OPTARG ;;
-	V  ) KG_VerboseLevel=$OPTARG ;;
-	h  ) help ;;
-	\? ) help ;;
+    m  ) modify=true ;;
+    i  ) input=$OPTARG ;;
+    o  ) output=$OPTARG ;;
+    T  ) tmpD=$OPTARG ;;
+    V  ) KG_VerboseLevel=$OPTARG ;;
+    h  ) help ;;
+    \? ) help ;;
     esac
 done
 shift $(($OPTIND -1 ))
@@ -110,6 +111,59 @@ TD=$tmpD/$aec
 #トラップ発動
 trap endByInt INT QUIT TERM HUP
 
+if [ ${modify} ];then
+  # 以下の事前チェックを行い自動修正する。
+  # 1. keyが先頭列にない。
+  # 2. 文字列Column　→最高頻度の文字列を 1 その他を 0 として実施
+  # 3. keyと全く同一の動きを見せるBoolean列：＜ERROR対処しない。
+  inputOriginal=$input
+  input=`mktemp`
+  targetLines=100   # Numericalの判断をRandomの何行で行うか？全部だと重いだろうから。
+  validColumns=$key
+  invalidColumns=
+  for column in `head -n1 $inputOriginal | sed -e "s/\%[^,]*//g" | tr "," "\n"`
+  do
+    if [ "$column" == "$key" ];then
+      keyTemp=`mktemp`
+      columnCount=count
+      mcount k=$key a=$columnCount i=$inputOriginal o=$keyTemp
+      lineCount=`wc -l $keyTemp | grep -oE "^\s*([0-9]+)"`
+      if [ $lineCount -gt 2 ];then
+        # echo "The key has 3 or more types of characters. Be boolean such as 0 or 1."
+        # the previous condition has been included cause of changing muniq to mcount.
+        word1=`mbest i=$keyTemp s=${columnCount}%nr from=0 size=1 |
+              mcut f=$key | tail -n +2`
+        inputAsBool=`mktemp`
+        keyAsBool=${key}AsBool
+        echo To analyze, [ $word1 ] as value is replaced by 1 and the other is 0 at [ ${key} ] as the key.
+        mcal i=$inputOriginal c='$s{'$key'}=="'$word1'"' a=$keyAsBool o=$inputAsBool
+        validColumns=${validColumns//$key/$keyAsBool}
+        inputOriginal=$inputAsBool
+        key=$keyAsBool
+        
+      elif [ $lineCount -eq 2 ];then
+        echo "The key would be constant. Check for the data and be careful if it is boolean."
+        exit
+  #   else # -eq 1 which means it might has been already boolean.
+              # key has been already added to validColumns, thus, there is nothing to do. 
+      fi
+    else
+      lineCount=`mselrand i=$inputOriginal c=$targetLines |
+        muniq k=$column |
+        msel c='n2s(${'$column'})!=$s{'$column'}' |
+        wc -l |
+        grep -oE "^\s*([0-9]+)"`
+      if [ $lineCount -gt 1 ];then
+        invalidColumns=$invalidColumns,$column
+      else
+        validColumns=$validColumns,$column
+      fi
+    fi
+  done
+  # 修正データによる分析
+  mcut i=$inputOriginal f=$validColumns o=$input
+fi  # end of modify
+
 # http://fuyukoma.sakura.ne.jp/works/rでまとめてt検定-csvで読み込みから書き出しまで/
 
 echo "
@@ -144,7 +198,7 @@ tResult <- function(x,y,fld){
         } else {
             tc <- \"n.s\"
         }
-        res <- data.frame(fld, label0_mean=mean(x,na.rm=TRUE), label1_mean=mean(y,na.rm=TRUE), f.test=_test, t=tv, p_value=tp, t_check=tc)
+        res <- data.frame(fld, label0_mean=mean(x,na.rm=TRUE), label1_mean=mean(y,na.rm=TRUE), f.test=t_test, t=tv, p_value=tp, t_check=tc)
         write(paste(\"#END#\",fld), stderr())
         return(res)
     } else {
