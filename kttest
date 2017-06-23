@@ -124,13 +124,13 @@ tResult <- function(x,y,fld){
     fp <- sprintf(\"%f\", ft\$p.value)
     if(!is.na(ft\$p.value)){
         if(ft\$p.value >= 0.05){ # 等分散の場合（var.equal=Tとする）
-          _varEqual<-T
-          _test<-\"TRUE\"
+          t_varEqual<-T
+          t_test<-\"TRUE\"
         } else {                  # 不等分散
-          _varEqual<-F
-          _test<-\"FALSE\"
+          t_varEqual<-F
+          t_test<-\"FALSE\"
         }
-        tt <- t.test(x, y, na.rm=TRUE, var.equal=_varEqual)
+        tt <- t.test(x, y, na.rm=TRUE, var.equal=t_varEqual)
         tp <- sprintf(\"%f\", tt\$p.value)
         tv <- sprintf(\"%f\", tt\$statistic)
         if(tt\$p.value < 0.005) { # p<.005の場合
