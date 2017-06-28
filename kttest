@@ -128,7 +128,7 @@ if [ ${modify} ];then
   do
     if [ "$column" == "$key" ];then
       keyTemp=`mktemp`
-      columnCount=count
+      columnCount=countTmp
       mcount k=$key a=$columnCount i=$inputOriginal o=$keyTemp
       lineCount=`wc -l $keyTemp | grep -oE "^\s*([0-9]+)"`
       if [ $lineCount -gt 2 ];then
