@@ -1,0 +1,47 @@
+# == km for scripts$
+# === bash: if
+# if -d:directoryExist, -f:fileExist, -s:hasAnyByteInTheFile, -e:exist
+#    -r:canReadFile, -w:canWriteFile, -x:canExecuteFile
+#    -z:stringLengthIs0, -n:stringHasAny, 
+#    "$! = 0":直前のコマンド正常終了
+# === (arguments)$
+# $$        current process Id$
+# $#        number of arguments$
+# $@        all arguments$
+# $*        all arguments with using IFS which is delimiter ex.)IFS=,$
+# shift 1   number of $* can be shift by the number$
+#   ex.) shift 1$
+#        echo $1  # echo $2 without shift 1$
+# ${!#}     the last argument$
+# ${name:-value}    value is used when name is undefined$
+# ${name:+value}    value is used when name is defined$
+# ${name:=value}    value is set$
+# ${name:start:length}    use like mid($s, start, length) length can be abbriviated$
+
+
+# ${name#ぱたーん}  前から 一致する最も短い部分を削除
+# ${name##ぱたーん}  前から 一致する最も長い部分を削除
+# ${name%ぱたーん}  後ろから 一致する最も短い部分を削除
+# ${name%%ぱたーん}  後ろから 一致する最も短い部分を削除
+# ${name/置換前/置換後} 最初のみ 置換
+# ${name//置換前/置換後} 全部 置換
+#$
+#ex.)$
+#echo $#$
+#echo $@$
+#echo $1 ${1} ${!#}$
+#shift 1$
+#echo $1 ${1} ${!#}$
+#
+$
+# === (trによる置換)$
+# tr -cs "[:alpha:]" "\n" < test.csv        alphabetを改行にしてしまう。$
+# tr "[:lower:]" "[:upper:]" < file1$$
+# tr "[a-z]" "[A-Z]" < file1$$
+#   ex.) Columnの数を数える$
+#   head -n1 spd-mc01-mc04.csv | tr "," "\n" | wc $
+
+
+=== grep
+ -c : file list
+ -E : regular Expression
