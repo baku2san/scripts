@@ -45,3 +45,31 @@ $
 === grep
  -c : file list
  -E : regular Expression
+
+=== here document
+# when EOS(anykeyword) appears, from the next line to the next EOS is treated as hereDoc
+ex1)
+echo << 'EOS'
+$var は展開されない
+hoge
+hige
+EOS
+
+ex2)
+cat << EOS test.txt > concat.txt
+hoge
+hige
+EOS
+
+ex3)
+cat <- EOS #こんな感じにすると、tab無視してくれるんだけど、viの設定上Tab打てないｗｗｗ
+>   hoge
+>     hige
+> EOS
+
+ex4)
+HOGE=`cat << EOS
+hoge
+hige
+EOS
+`
